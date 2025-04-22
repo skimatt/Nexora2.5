@@ -45,7 +45,7 @@ const WelcomePage = ({ session }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
           >
-            Mau aku bantuin apa hari ini?
+            Ada yang bisa saya bantu hari ini?
           </motion.p>
         </motion.div>
       </div>

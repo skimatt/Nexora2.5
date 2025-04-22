@@ -16,6 +16,8 @@ export default function Home({ session }) {
   const [typingMessage, setTypingMessage] = useState(null);
   const [isTypingStopped, setIsTypingStopped] = useState(false);
 
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true);
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const typingTimerRef = useRef(null);
@@ -45,7 +47,6 @@ export default function Home({ session }) {
     setToast
   );
 
-  // Initialize chat on page load
   useEffect(() => {
     let isMounted = true;
     const init = async () => {
@@ -73,39 +74,46 @@ export default function Home({ session }) {
     };
   }, [fetchChats, startNewChat, setSelectedChat, fetchMessages, setToast]);
 
-  // Auto-scroll to bottom when messages or typingMessage change
+  // Check if the user is at the bottom of the chat container
   useEffect(() => {
-    if (messagesEndRef.current) {
+    const el = chatContainerRef.current;
+    const onScroll = () => {
+      if (!el) return;
+      const isNearBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+      setIsUserAtBottom(isNearBottom);
+    };
+
+    if (el) el.addEventListener("scroll", onScroll);
+    return () => el && el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Prevent auto-scroll and only scroll to the bottom when user is at the bottom of the chat window
+  useEffect(() => {
+    if (isUserAtBottom && messagesEndRef.current) {
+      // Only scroll if the user is at the bottom manually
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, typingMessage]);
+  }, [messages, typingMessage, isUserAtBottom]); // No auto-scroll unless user is at the bottom
 
-  // Ensure smooth scrolling by enabling overflow
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.style.overflowY = "auto";
     }
   }, [messages, typingMessage]);
 
-  // Handle window resize for sidebar visibility
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 769) {
-        setIsSidebarOpen(true);
-      } else {
-        setIsSidebarOpen(false);
-      }
+      setIsSidebarOpen(window.innerWidth >= 769);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Ensure hamburger menu is clickable
   useEffect(() => {
     const handleClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Hamburger clicked");
       setIsSidebarOpen(true);
     };
 
@@ -127,11 +135,6 @@ export default function Home({ session }) {
       }
     };
   }, []);
-
-  // Debug sidebar state
-  useEffect(() => {
-    console.log("isSidebarOpen changed:", isSidebarOpen);
-  }, [isSidebarOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -184,7 +187,6 @@ export default function Home({ session }) {
       return;
     }
 
-    // Update chat title based on first message
     if (messages.length === 0) {
       const newTitle = await formatChatTitle(content);
       await supabase
@@ -222,7 +224,7 @@ export default function Home({ session }) {
   ]);
 
   return (
-    <div className="flex h-screen bg-[#0D0D0F]">
+    <div className="flex h-screen bg-[#0D0D0F] overflow-hidden">
       {toast && (
         <div className={`toast toast-${toast.type} z-45`}>{toast.message}</div>
       )}
@@ -259,31 +261,29 @@ export default function Home({ session }) {
         }}
       />
 
-      <div className="flex-1 flex flex-col bg-[#0D0D0F] relative z-10">
-        <div className="flex items-center p-3 border-b border-gray-800 md:hidden relative z-70 header-mobile">
+      <div className="flex-1 flex flex-col bg-neutral-900 relative z-10">
+        <div className="flex items-center p-3 border-b border-neutral-700 md:hidden relative z-70 header-mobile">
           <button
             ref={hamburgerRef}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log("Hamburger onClick triggered");
               setIsSidebarOpen(true);
             }}
             className="p-2 text-gray-400 hover:text-white z-80 rounded-md hover:bg-gray-900 transition-colors touch-manipulation pointer-events-auto"
-            style={{ position: "relative", zIndex: 80 }}
             aria-label="Open sidebar"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              stroke-width="1.5"
+              strokeWidth="1.5"
               stroke="currentColor"
-              class="size-6"
+              className="size-6"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
               />
             </svg>
@@ -296,7 +296,7 @@ export default function Home({ session }) {
 
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto z-10 relative"
+          className="flex-1 overflow-y-auto flex flex-col-reverse relative"
         >
           {hasSentMessage && selectedChat && messages.length > 0 ? (
             <ChatInput

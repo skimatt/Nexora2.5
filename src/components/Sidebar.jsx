@@ -95,18 +95,16 @@ const Sidebar = ({
   return (
     <>
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-black text-gray-100 flex flex-col transition-transform duration-500 ease-in-out z-30 md:static md:flex md:flex-col ${
+        className={`fixed top-0 left-0 h-full w-72 bg-[#1e1e1e] text-gray-100 flex flex-col transition-transform duration-500 ease-in-out z-30 border-r border-gray-700 md:static md:flex md:flex-col ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{
-          visibility: isSidebarOpen ? "visible" : "hidden",
-        }}
+        style={{ visibility: isSidebarOpen ? "visible" : "hidden" }}
         role="navigation"
         aria-label="Chat history sidebar"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <h2 className="text-2xl font-bold text-purple-700 tracking-tight drop-shadow-[0_0_5px_rgba(128,90,213,0.6)]">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <h2 className="text-2xl font-bold text-white tracking-tight">
             Nexora AI
           </h2>
 
@@ -132,7 +130,7 @@ const Sidebar = ({
         </div>
 
         {/* Chat History */}
-        <div className="flex-grow overflow-y-auto px-4 py-2">
+        <div className="flex-grow overflow-y-auto px-4 py-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
           <div className="text-gray-300 text-xs font-medium uppercase px-2 pb-3 tracking-wider">
             Chat History
           </div>
@@ -169,7 +167,7 @@ const Sidebar = ({
                           onClick={() => fetchMessages(chat.id)}
                           className={`flex-1 px-3 py-2 text-sm rounded-lg text-left ${
                             selectedChat === chat.id
-                              ? "bg-gray-800 text-white"
+                              ? "text-white"
                               : "text-gray-300 hover:bg-gray-800"
                           } transition-all duration-200 truncate font-medium`}
                           aria-label={`Open chat: ${formatChatTitle(
@@ -237,7 +235,7 @@ const Sidebar = ({
         </div>
 
         {/* Think Mode Toggle */}
-        <div className="px-6 py-4 border-t border-gray-800">
+        <div className="px-6 py-4 border-t border-gray-700">
           <button
             onClick={() => setThinkMode(!thinkMode)}
             className={`w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl ${
@@ -258,7 +256,7 @@ const Sidebar = ({
         </div>
 
         {/* User Profile & Logout */}
-        <div className="px-6 py-4 border-t border-gray-800">
+        <div className="px-6 py-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-blue-400 font-semibold border border-gray-800 shadow-sm">

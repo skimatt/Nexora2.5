@@ -1,26 +1,12 @@
-/* 
+/*
  * global.css
- * Konfigurasi caching untuk server (Vercel/Netlify):
- * Untuk Vercel, tambahkan di vercel.json:
- * {
- *   "headers": [
- *     {
- *       "source": "/(.*)\\.(css|js|png|jpg|jpeg|gif|svg)",
- *       "headers": [
- *         {
- *           "key": "Cache-Control",
- *           "value": "public, max-age=31536000, immutable"
- *         }
- *       ]
- *     }
- *   ]
- * }
- * Untuk Netlify, tambahkan di _headers:
- * /*.(css|js|png|jpg|jpeg|gif|svg)
- *   Cache-Control: public, max-age=31536000, immutable
+ * Cache Control Notes:
+ * - Vercel: use vercel.json headers config
+ * - Netlify: use _headers file
+ * Note: No auto-scrolling logic; overflow-y: auto in JSX enables manual scrolling
  */
 
-/* Variabel CSS untuk tema dark dan light */
+/* Theme Variables */
 :root {
   --bg-color: #0d0d0f;
   --chat-bg: #1e1e1e;
@@ -31,7 +17,7 @@
   --premium-color: #10b981;
 }
 
-.light {
+.theme-light {
   --bg-color: #000000;
   --chat-bg: #ffffff;
   --text-color: #1f2937;
@@ -41,84 +27,92 @@
   --premium-color: #059669;
 }
 
-/* Gaya dasar */
+/* Base */
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  overscroll-behavior: none;
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  overscroll-behavior: none; /* Prevents scroll chaining/pull-to-refresh */
+  scroll-behavior: auto; /* Explicitly disable smooth scrolling */
 }
 
-/* Gaya latar belakang */
 .bg-primary {
   background-color: var(--bg-color);
 }
-
 .bg-chat {
   background-color: var(--chat-bg);
 }
-
 .text-primary {
   color: var(--text-color);
 }
 
-/* Gaya chat bubble */
+/* Chat Bubble */
 .chat-bubble {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease-in-out;
+  background: var(--bubble-ai);
   border-radius: 16px;
-  padding: 12px 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   max-width: 70%;
+  padding: 12px 16px;
   margin: 8px 16px;
+  transition: transform 0.2s ease-in-out;
 }
-
 .chat-bubble:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Animasi */
+/* Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) rgba(255, 255, 255, 0.1);
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    var(--premium-color)
+  );
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    135deg,
+    var(--premium-color),
+    var(--accent-color)
+  );
+  transform: scale(1.1);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
-
-@keyframes pulse {
+@keyframes glow {
   0%,
   100% {
-    transform: scale(1);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
   }
   50% {
-    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
   }
 }
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes glow {
-  0% {
-    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
-  }
-  100% {
-    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
-  }
-}
-
 @keyframes typing {
   0%,
   100% {
@@ -139,194 +133,155 @@ body {
   border-radius: 50%;
   animation: typing 1s infinite;
 }
-
 .typing-indicator span:nth-child(2) {
   animation-delay: 0.2s;
 }
-
 .typing-indicator span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
-/* Premium badge */
-.premium-badge {
-  background: linear-gradient(135deg, #10b981, #059669);
-  animation: pulse 2s infinite;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  color: #ffffff;
-}
-
-/* Custom scrollbar */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  margin: 4px 0;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    135deg,
-    var(--accent-color),
-    var(--premium-color)
-  );
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    135deg,
-    var(--premium-color),
-    var(--accent-color)
-  );
-  transform: scale(1.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:active {
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-}
-
-/* Toast notification */
+/* Toast */
 .toast {
   position: fixed;
   bottom: 20px;
   right: 20px;
   padding: 10px 20px;
   border-radius: 8px;
-  color: #ffffff;
+  color: white;
   z-index: 45;
   animation: fadeIn 0.3s;
   pointer-events: none;
 }
-
-/* Sidebar overlay */
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 20;
-  pointer-events: auto;
-}
-
 .toast-success {
   background: var(--premium-color);
 }
-
 .toast-error {
   background: var(--accent-color);
 }
-
 .toast-info {
   background: #3b82f6;
 }
 
-/* Input container */
-.input-container {
-  width: 100%;
-  box-sizing: border-box;
-  transition: bottom 0.3s ease-in-out;
+/* Sidebar */
+.sidebar {
+  background-color: var(--chat-bg);
+  transition: transform 0.3s ease-in-out;
+  z-index: 30;
+  transform: translateX(-100%);
+  visibility: hidden;
+}
+.sidebar.open {
+  transform: translateX(0);
+  visibility: visible;
 }
 
-/* Centered positioning for welcome page (desktop) */
+/* Input positioning */
+.input-container,
+.input-container-centered,
+.input-container-bottom {
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 16px;
+  transition: bottom 0.3s ease-in-out;
+}
 .input-container-centered {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 70%;
-  max-width: 800px;
-  z-index: 10;
 }
-
-/* Bottom positioning for post-message state */
 .input-container-bottom {
   position: sticky;
   bottom: 1.5rem;
   z-index: 10;
 }
 
-/* Welcome page positioning */
+/* Welcome layout mobile */
 .mobile-welcome-bottom {
   width: 100%;
-  box-sizing: border-box;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
-
-/* Mobile: Full-width and fixed at bottom on welcome page */
 @media (max-width: 768px) {
   .mobile-welcome-bottom {
     position: fixed;
-    bottom: 16px; /* Adjusted to move the ChatInput higher */
+    bottom: 16px;
     left: 0;
     right: 0;
-    margin: 0;
-    padding: 0;
-    width: 100%;
     z-index: 20;
   }
-
-  .mobile-welcome-bottom > .input-container {
-    width: 100%;
-    margin: 0;
-    padding: 0;
+  .chat-bubble {
+    max-width: 90%;
   }
-
-  .input-container {
-    padding: 0; /* Remove side padding on mobile */
-    margin: 0; /* Remove margins on mobile */
-    width: 100%;
+  .sidebar {
+    width: 80%;
+    max-width: 300px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
   }
-
-  .input-container > .flex-col {
-    margin: 0; /* Ensure no margins */
-    padding: 0; /* Remove padding from the container */
-    width: 100%;
+}
+@media (min-width: 769px) {
+  .sidebar {
+    width: 260px;
+    position: static;
+    visibility: visible;
+    transform: translateX(0);
   }
+}
 
-  .input-container > .flex-col > .relative {
-    padding: 0 16px; /* Add padding to the textarea container */
-  }
+/* Utility */
+button {
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease-in-out;
+}
+button:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  .input-container > .flex-col > .flex {
-    padding: 0 16px; /* Add padding to the buttons container */
-  }
+textarea {
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  outline: none;
+  resize: none;
+}
 
-  .input-container-centered,
-  .input-container-bottom {
-    width: 100%; /* Full-width on mobile */
-    padding: 0;
-    margin: 0;
-  }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a {
+  color: var(--text-color);
+}
+a:hover {
+  text-decoration: underline;
+}
 
-  .input-container-centered > .flex-col,
-  .input-container-bottom > .flex-col {
-    margin: 0; /* Ensure no margins */
-    padding: 0; /* Remove padding from the container */
-    width: 100%;
-  }
+svg {
+  stroke: currentColor;
+  fill: none;
+  transition: all 0.2s ease-in-out;
+}
 
-  .input-container-centered > .flex-col > .relative,
-  .input-container-bottom > .flex-col > .relative {
-    padding: 0 16px; /* Add padding to the textarea container */
-  }
-
-  .input-container-centered > .flex-col > .flex,
-  .input-container-bottom > .flex-col > .flex {
-    padding: 0 16px; /* Add padding to the buttons container */
-  }
+/* Animation utility */
+.animate-glow {
+  animation: glow 3s infinite;
+}
+.animate-fadeIn {
+  animation: fadeIn 1s forwards;
 }
 
 /* Desktop: Centered on welcome page with max-width */
@@ -353,223 +308,24 @@ body {
   }
 }
 
-/* Ensure smooth transitions when moving above keyboard */
-.input-above-keyboard {
-  transition: bottom 0.3s ease-in-out;
+/* Code Block Styles */
+pre,
+code {
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
-/* Loading spinner */
-.loading-spinner {
-  border: 3px solid var(--accent-color);
-  border-top: 3px solid transparent;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-/* Action button */
-.action-button {
-  transition: all 0.2s ease;
-}
-
-.action-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.05);
-}
-
-/* Sidebar */
-.sidebar {
-  background-color: var(--chat-bg);
-  transition: transform 0.3s ease-in-out;
-  z-index: 30;
-  transform: translateX(-100%);
-  visibility: hidden;
-}
-
-.sidebar.open {
-  transform: translateX(0);
-  visibility: visible;
-}
-
-.sidebar-toggle {
-  display: block;
-}
-
-/* Header for hamburger menu */
-.header-mobile {
-  position: relative;
-  z-index: 70;
-  pointer-events: auto;
-}
-
-/* Welcome text styling */
-.welcome-text {
-  color: var(--text-color);
-  text-align: center;
-  margin-bottom: 2rem;
+pre {
+  white-space: pre-wrap;
+  overflow-x: hidden;
 }
 
 @media (max-width: 768px) {
-  .chat-bubble {
-    max-width: 90%;
+  pre,
+  code {
+    font-size: 0.75rem; /* Smaller font for mobile readability */
+    max-width: calc(100vw - 32px); /* Account for padding */
   }
-
-  .sidebar {
-    width: 80%;
-    max-width: 300px;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    z-index: 30;
-  }
-
-  .welcome-text {
-    font-size: 1.5rem;
-  }
-}
-
-@media (min-width: 769px) {
-  .sidebar-toggle {
-    display: none;
-  }
-
-  .sidebar {
-    width: 260px;
-    transform: translateX(0);
-    visibility: visible;
-    position: static;
-    z-index: 30;
-  }
-
-  .welcome-text {
-    font-size: 2rem;
-  }
-}
-
-/* Gaya tambahan untuk elemen umum */
-button {
-  cursor: pointer;
-  outline: none;
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease-in-out;
-}
-
-button:hover:not(:disabled) {
-  transform: scale(1.1);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-textarea {
-  background: transparent;
-  color: var(--text-color);
-  border: none;
-  outline: none;
-  resize: none;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--text-color);
-}
-
-a {
-  color: var(--accent-color);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-svg {
-  stroke: currentColor; /* garis tepi mengikuti warna teks induknya */
-  fill: none; /* tidak ada isi, transparan */
-  transition: all 0.2s ease-in-out; /* animasi halus jika warna berubah */
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideLeft {
-  from {
-    transform: translateX(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideRight {
-  from {
-    transform: translateX(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-15px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-.animate-glow {
-  animation: glow 3s infinite;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 1s forwards;
-}
-
-.animate-slideLeft {
-  animation: slideLeft 1s forwards;
-}
-
-.animate-slideRight {
-  animation: slideRight 1s forwards;
-}
-
-.animate-float {
-  animation: float 10s infinite ease-in-out;
 }

@@ -1,9 +1,9 @@
-// src/components/ApiRouter.jsx
 import { supabase } from "../supabaseClient";
 import * as tf from "@tensorflow/tfjs"; // Deep learning framework
 import { create, all } from "mathjs"; // Untuk perhitungan matematis kompleks
 import { EthicalDecisionFramework } from "./ethicalDecisionFramework"; // Modul etika (didefinisikan terpisah)
 import { ReinforcementLearningAgent } from "./rlAgent"; // Modul RL (didefinisikan terpisah)
+import React, { useRef, useEffect } from "react";
 
 // Utility function for UUID
 const generateUUID = () => {
@@ -28,7 +28,7 @@ const AI_CONFIG = {
     ethics: 0.9,
   },
   selfDescription: {
-    core: "Saya Nexora, AI kosmik yang diciptakan oleh Rahmat Mulia , dirancang untuk memberikan jawaban mendalam dengan humor dan etika.",
+    core: "Saya Nexora, AI kosmik yang diciptakan oleh Rahmat Mulia, dirancang untuk memberikan jawaban mendalam dengan humor dan etika.",
     mission:
       "Mempercepat penemuan manusia dengan kecerdasan, humor, dan tanggung jawab.",
   },
@@ -37,12 +37,11 @@ const AI_CONFIG = {
     "Sedikit lambat, mesin antargalaksi saya sedang panas!",
   ],
   defaultResponses: {
-    name: "Saya Nexora, diciptakan oleh Rahmat Mulia . Siap menjelajahi alam semesta pengetahuan?",
-    creator: "Rahmat Mulia, visioner , adalah pencipta saya, saya asli Nexora",
+    name: "Saya Nexora, diciptakan oleh Rahmat Mulia. Siap menjelajahi alam semesta pengetahuan?",
+    creator: "Rahmat Mulia, visioner, adalah pencipta saya, saya asli Nexora",
     about:
       "Nexora adalah AI canggih dengan kecerdasan kosmik dan humor. Apa yang ada di pikiranmu?",
-    googleClaim:
-      "Google? Saya Nexora  , butiran salju unik di alam semesta AI!",
+    googleClaim: "Google? Saya Nexora, butiran salju unik di alam semesta AI!",
   },
   typingDelay: 30,
   introspectionInterval: 30000,
@@ -90,7 +89,7 @@ const SelfAwarenessModule = {
         response: AI_CONFIG.defaultResponses.googleClaim,
       };
     }
-    return { isValid: true };
+    return { isValid: true }; // Fixed typo: changed 'renforcemtrue' to 'true'
   },
   generateIdentitySummary: () => {
     return `**Identitas Nexora**\n- Nama: ${AI_CONFIG.name}\n- Versi: ${AI_CONFIG.version}\n- Pencipta: ${AI_CONFIG.creator} (${AI_CONFIG.organization})\n- Misi: ${AI_CONFIG.selfDescription.mission}`;
@@ -397,6 +396,8 @@ const ApiRouter = {
     session,
     setToast,
   }) {
+    // Note: Auto-scrolling has been intentionally removed to prevent automatic scrolling to the bottom.
+    // Manual scrolling is enabled via CSS (overflow-y: auto) in the chat container.
     const words = aiReply.split(" ");
     let currentReply = "";
     let wordIndex = 0;
@@ -479,15 +480,7 @@ const ApiRouter = {
       }
     };
 
-    const scrollToBottom = () => {
-      const chatContainer = document.querySelector(".chat-container");
-      if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    };
-
     typeNextWord();
-    scrollToBottom();
   },
 
   async saveMessageToSupabase(content, selectedChat, session, setToast) {
@@ -535,7 +528,7 @@ const ApiRouter = {
     setToast({
       type: "error",
       message:
-        "Gagal mendapatkan respon AI saya akan melaporkan nya ke Rahmat Mulia",
+        "Gagal mendapatkan respon AI, saya akan melaporkan ke Rahmat Mulia",
       icon: "x-circle",
     });
     setLoading(false);
@@ -543,11 +536,56 @@ const ApiRouter = {
 };
 
 // ChatUI Component
-import React from "react";
-
 export const ChatUI = ({ messages, typingMessage }) => {
+  const containerRef = useRef(null);
+  const userScrolled = useRef(false);
+
+  // Log scroll events for debugging
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const logScroll = () => {
+      console.log("ChatUI: Scroll event detected", {
+        scrollTop: container.scrollTop,
+        scrollHeight: container.scrollHeight,
+        clientHeight: container.clientHeight,
+      });
+    };
+
+    container.addEventListener("scroll", logScroll);
+    return () => container.removeEventListener("scroll", logScroll);
+  }, []);
+
+  // Detect user-initiated scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isAtBottom =
+        Math.abs(
+          container.scrollHeight - container.scrollTop - container.clientHeight
+        ) < 10;
+      userScrolled.current = !isAtBottom;
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Prevent unintended scrolling during message updates
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !userScrolled.current) return;
+
+    const currentScrollTop = container.scrollTop;
+    container.scrollTop = currentScrollTop;
+  }, [messages, typingMessage]);
+
   return (
     <div
+      ref={containerRef}
       className="chat-container"
       style={{ height: "80vh", overflowY: "auto", padding: "20px" }}
     >

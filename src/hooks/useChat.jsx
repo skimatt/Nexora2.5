@@ -1,11 +1,22 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 
+// Custom hook for managing chat functionality with Supabase
+// Note: This hook does not handle UI scrolling behavior (e.g., auto-scrolling),
+// which is managed in rendering components (e.g., ChatOutput, ChatUI)
 export const useChat = (session, setToast) => {
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [hasSentMessage, setHasSentMessage] = useState(false);
+
+  // Debug message updates
+  const setMessagesWithDebug = useCallback((newMessages) => {
+    console.log("useChat: setMessages called", {
+      messageCount: newMessages.length,
+    });
+    setMessages(newMessages);
+  }, []);
 
   const fetchChats = useCallback(async () => {
     const { data, error } = await supabase
@@ -38,10 +49,10 @@ export const useChat = (session, setToast) => {
       }
 
       setSelectedChat(chatId);
-      setMessages(data || []);
+      setMessagesWithDebug(data || []);
       setHasSentMessage(data && data.length > 0);
     },
-    [setToast]
+    [setToast, setMessagesWithDebug]
   );
 
   const startNewChat = useCallback(async () => {
@@ -59,11 +70,11 @@ export const useChat = (session, setToast) => {
     if (data?.length > 0) {
       const chatId = data[0].id;
       setSelectedChat(chatId);
-      setMessages([]);
+      setMessagesWithDebug([]);
       setHasSentMessage(false);
       await fetchChats();
     }
-  }, [session.user.id, fetchChats, setToast]);
+  }, [session.user.id, fetchChats, setToast, setMessagesWithDebug]);
 
   const clearChat = useCallback(async () => {
     if (!selectedChat) return;
@@ -78,11 +89,11 @@ export const useChat = (session, setToast) => {
       return;
     }
 
-    setMessages([]);
+    setMessagesWithDebug([]);
     setHasSentMessage(false);
     setToast({ type: "success", message: "Chat berhasil dihapus" });
     await updateChatTitle(selectedChat, "New Chat");
-  }, [selectedChat, setToast]);
+  }, [selectedChat, setToast, setMessagesWithDebug]);
 
   const deleteChat = useCallback(
     async (chatId) => {
@@ -136,20 +147,39 @@ export const useChat = (session, setToast) => {
     []
   );
 
-  return {
-    chats,
-    messages,
-    selectedChat,
-    hasSentMessage,
-    setMessages,
-    setSelectedChat,
-    setHasSentMessage,
-    fetchChats,
-    fetchMessages,
-    startNewChat,
-    clearChat,
-    deleteChat,
-    updateChatTitle,
-    formatChatTitle,
-  };
+  // Memoize return value to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      chats,
+      messages,
+      selectedChat,
+      hasSentMessage,
+      setMessages: setMessagesWithDebug,
+      setSelectedChat,
+      setHasSentMessage,
+      fetchChats,
+      fetchMessages,
+      startNewChat,
+      clearChat,
+      deleteChat,
+      updateChatTitle,
+      formatChatTitle,
+    }),
+    [
+      chats,
+      messages,
+      selectedChat,
+      hasSentMessage,
+      setMessagesWithDebug,
+      setSelectedChat,
+      setHasSentMessage,
+      fetchChats,
+      fetchMessages,
+      startNewChat,
+      clearChat,
+      deleteChat,
+      updateChatTitle,
+      formatChatTitle,
+    ]
+  );
 };

@@ -1,62 +1,67 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+// ChatOutput component for rendering chat messages with Markdown and typing indicator
+// Note: Auto-scrolling is explicitly disabled; manual scrolling is enabled via CSS (overflow-y: auto)
+// Scroll lock prevents unintended scrolling during message updates
 const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
   const containerRef = useRef(null);
-  const [isScrollingUp, setIsScrollingUp] = useState(false);
-  const [isAtBottom, setIsAtBottom] = useState(true);
+  const userScrolled = useRef(false);
 
-  // Check if the user is at the bottom of the chat
-  const checkIfAtBottom = () => {
-    if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      return scrollHeight - scrollTop <= clientHeight + 10; // 10px tolerance
-    }
-    return true;
-  };
-
-  // Handle scroll events to update bottom status
-  const handleScroll = () => {
-    const isBottom = checkIfAtBottom();
-    setIsAtBottom(isBottom);
-  };
-
-  // Detect upward scrolling via wheel event
-  const handleWheel = (e) => {
-    setIsScrollingUp(e.deltaY < 0);
-  };
-
-  // Attach scroll and wheel event listeners
+  // Log scroll events for debugging
   useEffect(() => {
     const container = containerRef.current;
-    if (container) {
-      container.addEventListener("wheel", handleWheel);
-      container.addEventListener("scroll", handleScroll);
-      return () => {
-        container.removeEventListener("wheel", handleWheel);
-        container.removeEventListener("scroll", handleScroll);
-      };
-    }
+    if (!container) return;
+
+    const logScroll = () => {
+      console.log("ChatOutput: Scroll event detected", {
+        scrollTop: container.scrollTop,
+        scrollHeight: container.scrollHeight,
+        clientHeight: container.clientHeight,
+      });
+    };
+
+    container.addEventListener("scroll", logScroll);
+    return () => container.removeEventListener("scroll", logScroll);
   }, []);
 
-  // Auto-scroll to bottom only if user is at the bottom
+  // Detect user-initiated scrolling to disable auto-scroll attempts
   useEffect(() => {
-    if (isAtBottom && messagesEndRef?.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, typingMessage, isAtBottom]);
+    const container = containerRef.current;
+    if (!container) return;
 
-  // Render Markdown content with custom styling
+    const handleScroll = () => {
+      const isAtBottom =
+        Math.abs(
+          container.scrollHeight - container.scrollTop - container.clientHeight
+        ) < 10;
+      userScrolled.current = !isAtBottom;
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Prevent unintended scrolling during message updates
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !userScrolled.current) return;
+
+    const currentScrollTop = container.scrollTop;
+    // Restore scroll position after render
+    container.scrollTop = currentScrollTop;
+  }, [messages, typingMessage]);
+
   const renderMessageContent = (content) => {
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }) {
+          code({ inline, className, children }) {
             const match = /language-(\w+)/.exec(className || "");
             return !inline ? (
-              <div className="my-4 rounded-lg overflow-hidden shadow-lg">
+              <div className="my-4 rounded bg-[#1e1e1e] text-gray-100 max-w-full">
                 <div className="flex items-center justify-between px-4 py-2 bg-[#202123] text-gray-300 text-xs">
                   <span className="font-mono font-medium">
                     {match ? match[1] : "code"}
@@ -65,7 +70,6 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
                     onClick={() => navigator.clipboard.writeText(children)}
                     className="hover:bg-[#2e2e2e] p-1 rounded transition-all flex items-center gap-1"
                     title="Copy code"
-                    aria-label="Copy code"
                   >
                     <svg
                       className="w-4 h-4"
@@ -83,53 +87,51 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
                     <span>Copy</span>
                   </button>
                 </div>
-                <div className="bg-[#1e1e1e] p-4 text-gray-100">
-                  <pre className="whitespace-pre-wrap font-mono text-xs">
-                    <code>{children}</code>
-                  </pre>
-                </div>
+                <pre className="p-4 text-xs font-mono whitespace-pre-wrap overflow-wrap-anywhere max-w-full">
+                  <code>{children}</code>
+                </pre>
               </div>
             ) : (
-              <code className="bg-[#1e1e1e] px-1 py-0.5 rounded font-mono text-xs text-gray-100">
+              <code className="bg-[#1e1e1e] px-1 py-0.5 rounded text-xs text-gray-100">
                 {children}
               </code>
             );
           },
-          p: ({ node, ...props }) => (
+          p: ({ ...props }) => (
             <p className="mb-4 leading-relaxed text-gray-200" {...props} />
           ),
-          h1: ({ node, ...props }) => (
+          h1: ({ ...props }) => (
             <h1
               className="text-2xl font-bold mt-6 mb-4 text-white"
               {...props}
             />
           ),
-          h2: ({ node, ...props }) => (
+          h2: ({ ...props }) => (
             <h2 className="text-xl font-bold mt-5 mb-3 text-white" {...props} />
           ),
-          h3: ({ node, ...props }) => (
+          h3: ({ ...props }) => (
             <h3 className="text-lg font-bold mt-4 mb-2 text-white" {...props} />
           ),
-          ul: ({ node, ...props }) => (
+          ul: ({ ...props }) => (
             <ul
               className="list-disc pl-5 mb-4 space-y-1 text-gray-200"
               {...props}
             />
           ),
-          ol: ({ node, ...props }) => (
+          ol: ({ ...props }) => (
             <ol
               className="list-decimal pl-5 mb-4 space-y-1 text-gray-200"
               {...props}
             />
           ),
-          li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-          blockquote: ({ node, ...props }) => (
+          li: ({ ...props }) => <li className="mb-1" {...props} />,
+          blockquote: ({ ...props }) => (
             <blockquote
               className="border-l-4 border-accent pl-4 italic my-4 text-gray-300"
               {...props}
             />
           ),
-          a: ({ node, ...props }) => (
+          a: ({ ...props }) => (
             <a
               className="text-accent hover:underline"
               target="_blank"
@@ -137,7 +139,7 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
               {...props}
             />
           ),
-          table: ({ node, ...props }) => (
+          table: ({ ...props }) => (
             <div className="overflow-x-auto my-4">
               <table
                 className="min-w-full divide-y divide-gray-700"
@@ -145,22 +147,22 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
               />
             </div>
           ),
-          thead: ({ node, ...props }) => (
+          thead: ({ ...props }) => (
             <thead className="bg-[#202123]" {...props} />
           ),
-          tbody: ({ node, ...props }) => (
+          tbody: ({ ...props }) => (
             <tbody className="divide-y divide-gray-700" {...props} />
           ),
-          tr: ({ node, ...props }) => (
+          tr: ({ ...props }) => (
             <tr className="hover:bg-[#2a2a2a]" {...props} />
           ),
-          th: ({ node, ...props }) => (
+          th: ({ ...props }) => (
             <th
               className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
               {...props}
             />
           ),
-          td: ({ node, ...props }) => (
+          td: ({ ...props }) => (
             <td className="px-4 py-3 text-sm text-gray-200" {...props} />
           ),
         }}
@@ -170,10 +172,8 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
     );
   };
 
-  // Group messages by role for cleaner rendering
   const messageGroups = [];
   let currentGroup = null;
-
   messages.forEach((msg) => {
     if (!currentGroup || currentGroup.role !== msg.role) {
       currentGroup = { role: msg.role, messages: [msg] };
@@ -199,7 +199,7 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
                 }`}
               >
                 <div
-                  className={`max-w-2xl ${
+                  className={`max-w-full ${
                     group.role === "user" ? "text-right" : "text-left"
                   }`}
                 >
@@ -209,7 +209,7 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
                       className={`mb-4 message-enter ${
                         group.role === "user"
                           ? "bg-user-bg rounded-2xl p-4 shadow-md"
-                          : "bg-ai-bg rounded-2xl p-4 shadow-md"
+                          : ""
                       }`}
                     >
                       <div className="text-white">
