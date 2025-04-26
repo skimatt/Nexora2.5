@@ -313,12 +313,12 @@ const ApiRouter = {
       }
 
       const response = await fetch(
-        "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+        "https://skimatt.rahmatyoung10.workers.dev/",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-lite-001",
+            model: "google/gemini-2.0-flash-001",
             messages: conversationContext,
             format: "markdown",
           }),
@@ -356,12 +356,12 @@ const ApiRouter = {
     ];
 
     const response = await fetch(
-      "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+      "https://skimatt.rahmatyoung10.workers.dev/",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-lite-001",
+          model: "google/gemini-2.0-flash-001",
           messages: [
             ...context,
             {
