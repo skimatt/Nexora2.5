@@ -313,7 +313,7 @@ const ApiRouter = {
       }
 
       const response = await fetch(
-        "https://skimatt.rahmatyoung10.workers.dev/",
+        "https://small-union-fb5c.rahmatyoung10.workers.dev/",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -356,7 +356,7 @@ const ApiRouter = {
     ];
 
     const response = await fetch(
-      "https://skimatt.rahmatyoung10.workers.dev/",
+      "https://small-union-fb5c.rahmatyoung10.workers.dev/",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
