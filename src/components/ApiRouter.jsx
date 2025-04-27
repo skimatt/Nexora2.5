@@ -318,7 +318,7 @@ const ApiRouter = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-001",
+            model: "google/gemini-2.0-flash-lite-001",
             messages: conversationContext,
             format: "markdown",
           }),
@@ -361,7 +361,7 @@ const ApiRouter = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.0-flash-lite-001",
           messages: [
             ...context,
             {
