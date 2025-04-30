@@ -292,98 +292,110 @@ const ApiRouter = {
     });
   },
 
-  async fetchAIResponse({
-    prompt,
-    conversationContext,
-    thinkMode,
-    controller,
-    setToast,
-  }) {
-    try {
-      const isComplexQuery =
-        prompt.split(" ").length > 10 ||
-        prompt.includes("why") ||
-        prompt.includes("how");
-      if (isComplexQuery && thinkMode) {
-        return await ApiRouter.handleComplexQuery(
-          prompt,
-          conversationContext,
-          controller.signal
-        );
-      }
+async fetchAIResponse({
+  prompt,
+  conversationContext,
+  thinkMode,
+  controller,
+  setToast,
+}) {
+  try {
+    const isComplexQuery =
+      prompt.split(" ").length > 10 ||
+      prompt.toLowerCase().includes("why") ||
+      prompt.toLowerCase().includes("how");
 
-      const response = await fetch(
-        "https://small-union-fb5c.rahmatyoung10.workers.dev/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.0-flash-lite-001",
-            messages: conversationContext,
-            format: "markdown",
-          }),
-          signal: controller.signal,
-        }
+    if (isComplexQuery && thinkMode) {
+      return await ApiRouter.handleComplexQuery(
+        prompt,
+        conversationContext,
+        controller.signal
       );
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return (
-        result.choices?.[0]?.message?.content ||
-        "Hmm, saya tersesat di antargalaksi. Coba lagi?"
-      );
-    } catch (error) {
-      console.error("fetchAIResponse error:", error);
-      setToast({
-        type: "error",
-        message: "Gagal menghubungi server AI",
-        icon: "x-circle",
-      });
-      throw error;
     }
-  },
-
-  async handleComplexQuery(prompt, context, signal) {
-    const reasoningSteps = [
-      "Mari uraikan pertanyaan ini:",
-      `Kamu bertanya: "${prompt}"`,
-      "Saya akan berpikir langkah demi langkah...",
-      "1. Menganalisis konteks...",
-      "2. Merumuskan jawaban...",
-    ];
 
     const response = await fetch(
-      "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+      "https://skimatt.rahmatyoung10.workers.dev/", // GANTI SESUAI WORKER KAMU
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-lite-001",
+          model: "google/gemini-2.0-flash-001", // atau "google/gemini-2.0-flash-lite-001" jika Worker mendukung
           messages: [
-            ...context,
+            ...conversationContext,
             {
-              role: "system",
-              content: `Berikan jawaban terperinci dengan langkah-langkah pemikiran untuk: ${prompt}`,
+              role: "user",
+              content: prompt,
             },
           ],
           format: "markdown",
         }),
-        signal,
+        signal: controller.signal,
       }
     );
 
     if (!response.ok) {
-      throw new Error("API request failed");
+      throw new Error(`API request failed: ${response.status}`);
     }
 
     const result = await response.json();
-    const baseAnswer =
-      result.choices?.[0]?.message?.content || "Saya butuh lebih banyak info!";
-    return `${reasoningSteps.join("\n")}\n\n**Jawaban Final:**\n${baseAnswer}`;
-  },
+    return (
+      result.choices?.[0]?.message?.content ||
+      "Hmm, saya tersesat di antargalaksi. Coba lagi?"
+    );
+  } catch (error) {
+    console.error("fetchAIResponse error:", error);
+    setToast?.({
+      type: "error",
+      message: "Gagal menghubungi server AI",
+      icon: "x-circle",
+    });
+    throw error;
+  }
+},
+
+async handleComplexQuery(prompt, context, signal) {
+  const reasoningSteps = [
+    "Mari uraikan pertanyaan ini:",
+    `Kamu bertanya: "${prompt}"`,
+    "Saya akan berpikir langkah demi langkah...",
+    "1. Menganalisis konteks...",
+    "2. Merumuskan jawaban...",
+  ];
+
+  const response = await fetch(
+    "https://skimatt.rahmatyoung10.workers.dev/", // GANTI SESUAI WORKER KAMU
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-001", // atau model lain sesuai kebutuhan
+        messages: [
+          ...context,
+          {
+            role: "system",
+            content: `Berikan jawaban terperinci dengan langkah-langkah pemikiran untuk: ${prompt}`,
+          },
+        ],
+        format: "markdown",
+      }),
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("API request failed");
+  }
+
+  const result = await response.json();
+  const baseAnswer =
+    result.choices?.[0]?.message?.content || "Saya butuh lebih banyak info!";
+  return `${reasoningSteps.join("\n")}\n\n**Jawaban Final:**\n${baseAnswer}`;
+},
+
 
   async startTypingAnimation({
     aiReply,
