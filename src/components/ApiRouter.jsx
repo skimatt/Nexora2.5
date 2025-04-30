@@ -377,7 +377,7 @@ async handleComplexQuery(prompt, context, signal) {
           ...context,
           {
             role: "system",
-            content: `Berikan jawaban terperinci dengan langkah-langkah pemikiran untuk: ${prompt}`,
+            content: `Jawab pertanyaan berikut dengan singkat terlebih dahulu. Setelah itu, tawarkan untuk menjelaskan lebih detail jika pengguna menginginkannya": ${prompt}`,
           },
         ],
         format: "markdown",
