@@ -20,6 +20,7 @@
     "framer-motion": "^12.7.4",
     "lucide-react": "^0.487.0",
     "mathjs": "^14.4.0",
+    "prismjs": "^1.30.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

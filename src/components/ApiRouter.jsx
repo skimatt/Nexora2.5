@@ -302,8 +302,9 @@ const ApiRouter = {
     try {
       const isComplexQuery =
         prompt.split(" ").length > 10 ||
-        prompt.includes("why") ||
-        prompt.includes("how");
+        prompt.toLowerCase().includes("why") ||
+        prompt.toLowerCase().includes("how");
+
       if (isComplexQuery && thinkMode) {
         return await ApiRouter.handleComplexQuery(
           prompt,
@@ -313,13 +314,21 @@ const ApiRouter = {
       }
 
       const response = await fetch(
-        "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+        "https://skimatt.rahmatyoung10.workers.dev/", // GANTI SESUAI WORKER KAMU
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-lite-001",
-            messages: conversationContext,
+            model: "google/gemini-2.0-flash-001", // atau "google/gemini-2.0-flash-lite-001" jika Worker mendukung
+            messages: [
+              ...conversationContext,
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
             format: "markdown",
           }),
           signal: controller.signal,
@@ -337,7 +346,7 @@ const ApiRouter = {
       );
     } catch (error) {
       console.error("fetchAIResponse error:", error);
-      setToast({
+      setToast?.({
         type: "error",
         message: "Gagal menghubungi server AI",
         icon: "x-circle",
@@ -356,17 +365,19 @@ const ApiRouter = {
     ];
 
     const response = await fetch(
-      "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+      "https://skimatt.rahmatyoung10.workers.dev/", // GANTI SESUAI WORKER KAMU
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-lite-001",
+          model: "google/gemini-2.0-flash-001", // atau model lain sesuai kebutuhan
           messages: [
             ...context,
             {
               role: "system",
-              content: `Berikan jawaban terperinci dengan langkah-langkah pemikiran untuk: ${prompt}`,
+              content: `Jawab pertanyaan berikut dengan singkat terlebih dahulu. Setelah itu, tawarkan untuk menjelaskan lebih detail jika pengguna menginginkannya": ${prompt}`,
             },
           ],
           format: "markdown",

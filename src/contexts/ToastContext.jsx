@@ -1,4 +1,6 @@
+// ToastContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
+import Toast from "./Toast"; // Import komponen tampilan Toast
 
 const ToastContext = createContext();
 
@@ -13,9 +15,9 @@ export const ToastProvider = ({ children }) => {
   }, [toast]);
 
   return (
-    <ToastContext.Provider value={{ toast, setToast }}>
+    <ToastContext.Provider value={{ setToast }}>
       {children}
-      {toast && <Toast {...toast} />}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </ToastContext.Provider>
   );
 };
@@ -25,5 +27,5 @@ export const useToast = () => {
   if (!context) {
     throw new Error("useToast must be used within a ToastProvider");
   }
-  return context.setToast;
+  return context;
 };

@@ -3,13 +3,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 // ChatOutput component for rendering chat messages with Markdown and typing indicator
-// Note: Auto-scrolling is explicitly disabled; manual scrolling is enabled via CSS (overflow-y: auto)
-// Scroll lock prevents unintended scrolling during message updates
+// Smooth auto-scrolling is enabled when new messages are added, unless the user has scrolled up
 const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
   const containerRef = useRef(null);
   const userScrolled = useRef(false);
 
-  // Log scroll events for debugging
+  // Log scroll events for debugging (optional, can be removed in production)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -26,7 +25,7 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
     return () => container.removeEventListener("scroll", logScroll);
   }, []);
 
-  // Detect user-initiated scrolling to disable auto-scroll attempts
+  // Detect user-initiated scrolling to determine if auto-scroll should be disabled
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -43,14 +42,18 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Prevent unintended scrolling during message updates
+  // Auto-scroll to bottom when messages or typingMessage change, unless user has scrolled up
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !userScrolled.current) return;
+    if (!container) return;
 
-    const currentScrollTop = container.scrollTop;
-    // Restore scroll position after render
-    container.scrollTop = currentScrollTop;
+    // Only auto-scroll if the user hasn't scrolled up
+    if (!userScrolled.current) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages, typingMessage]);
 
   const renderMessageContent = (content) => {
@@ -59,6 +62,7 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
         remarkPlugins={[remarkGfm]}
         components={{
           code({ inline, className, children }) {
+            // Removed invalid `彼此: true`
             const match = /language-(\w+)/.exec(className || "");
             return !inline ? (
               <div className="my-4 rounded bg-[#1e1e1e] text-gray-100 max-w-full">
@@ -67,7 +71,9 @@ const ChatOutput = ({ messages = [], typingMessage, messagesEndRef }) => {
                     {match ? match[1] : "code"}
                   </span>
                   <button
-                    onClick={() => navigator.clipboard.writeText(children)}
+                    onClick={() =>
+                      navigator.clipboard.writeText(String(children).trim())
+                    }
                     className="hover:bg-[#2e2e2e] p-1 rounded transition-all flex items-center gap-1"
                     title="Copy code"
                   >
